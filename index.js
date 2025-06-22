@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 const app = express();
 app.use(express.json());
 
-const SECRET = "i_^;aMvCew')yVU`rR87#bIB?E+KPx0CwFZ!zQjLxT@3oS%6YlD2X";
+const SECRET = "a9a6963b-eb59-4a14-9506-bbe0edbbee19";
 
 // Middleware para validar JWT
 function authenticateToken(req, res, next) {
