@@ -37,7 +37,11 @@ app.post("/send", async (req, res) => {
   const chatId = number.includes("@c.us") ? number : `${number}@c.us`;
 
   try {
-    await client.sendMessage(chatId, message);
+    const isRegistered = await client.isRegisteredUser(chatId);
+    console.log(`Número ${chatId} registrado no WhatsApp?`, isRegistered);
+
+    const sendResult = await client.sendMessage(chatId, message);
+    console.log("Mensagem enviada, resultado:", sendResult);
     res.send("✅ Mensagem enviada com sucesso!");
   } catch (err) {
     console.error("Erro ao enviar mensagem:", err);
