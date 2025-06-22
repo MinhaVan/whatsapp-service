@@ -1,9 +1,26 @@
 const { Client, LocalAuth } = require("whatsapp-web.js");
 const express = require("express");
 const qrcode = require("qrcode-terminal");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 app.use(express.json());
+
+const SECRET = "i_^;aMvCew')yVU`rR87#bIB?E+KPx0CwFZ!zQjLxT@3oS%6YlD2X";
+
+// Middleware para validar JWT
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
+
+  if (!token) return res.status(401).json({ error: "Token não fornecido" });
+
+  jwt.verify(token, SECRET, (err, user) => {
+    if (err) return res.status(403).json({ error: "Token inválido" });
+    req.user = user;
+    next();
+  });
+}
 
 const client = new Client({
   authStrategy: new LocalAuth(), // Salva sessão entre restarts
@@ -28,7 +45,8 @@ client.on("auth_failure", (msg) => {
 
 client.initialize();
 
-app.post("/send", async (req, res) => {
+// Rota protegida para enviar mensagem - precisa JWT válido
+app.post("/send", authenticateToken, async (req, res) => {
   const { number, message } = req.body;
 
   if (!number || !message)
@@ -39,6 +57,10 @@ app.post("/send", async (req, res) => {
   try {
     const isRegistered = await client.isRegisteredUser(chatId);
     console.log(`Número ${chatId} registrado no WhatsApp?`, isRegistered);
+
+    if (!isRegistered) {
+      return res.status(400).send("Número não registrado no WhatsApp");
+    }
 
     const sendResult = await client.sendMessage(chatId, message);
     console.log("Mensagem enviada, resultado:", sendResult);
